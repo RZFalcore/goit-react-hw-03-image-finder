@@ -3,13 +3,13 @@ import PropTypes from 'prop-types';
 import PhotoCard from '../PhotoCard/PhotoCard';
 import styles from './Gallery.module.css';
 
-const Gallery = ({ photoCards, onLoadMore }) => (
+const Gallery = ({ photoMass, onLoadMore }) => (
   <div>
-    {photoCards.length === 0 && (
+    {photoMass.length === 0 && (
       <p className={styles.error}>Sorry, didnt find anything!!</p>
     )}
     <ul className={styles.gallery}>
-      {photoCards.map(card => (
+      {photoMass.map(card => (
         <li key={card.id}>
           <PhotoCard {...card} />
         </li>
@@ -22,7 +22,11 @@ const Gallery = ({ photoCards, onLoadMore }) => (
 );
 
 Gallery.propTypes = {
-  photoCards: PropTypes.arrayOf(PropTypes.string).isRequired,
+  photoMass: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number,
+    }),
+  ).isRequired,
   onLoadMore: PropTypes.func.isRequired,
 };
 

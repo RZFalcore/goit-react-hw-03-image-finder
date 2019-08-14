@@ -25,6 +25,12 @@ class App extends Component {
     if (perPage === 12) {
       photoCards.length = 12;
     }
+    if (photoCards.length > 12) {
+      window.scrollTo({
+        top: document.body.scrollHeight - 1430,
+        behavior: 'smooth',
+      });
+    }
   }
 
   fetchPhoto = (querry, perPage) => {
@@ -35,7 +41,7 @@ class App extends Component {
 
   handleSubmit = e => {
     e.preventDefault();
-    this.setState({ perPage: 12, photoCards: [] });
+    this.setState({ perPage: 12 });
     const { querry } = this.state;
     const { perPage } = this.state;
     this.fetchPhoto(querry, perPage);
@@ -49,7 +55,6 @@ class App extends Component {
     this.setState(prevState => ({
       perPage: prevState.perPage + 12,
     }));
-    window.scrollTo(0, document.body.scrollHeight);
   };
 
   render() {
@@ -60,7 +65,7 @@ class App extends Component {
           onSubmit={this.handleSubmit}
           onChange={this.handleInputChange}
         />
-        <Gallery photoCards={photoCards} onLoadMore={this.handleLoadMore} />
+        <Gallery photoMass={photoCards} onLoadMore={this.handleLoadMore} />
       </>
     );
   }
