@@ -28,7 +28,7 @@ class App extends Component {
     if (photoCards.length > 12) {
       window.scrollTo({
         top: document.body.scrollHeight - 1430,
-        behavior: 'smooth',
+        behavior: 'instant',
       });
     }
   }
