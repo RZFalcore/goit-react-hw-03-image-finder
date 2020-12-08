@@ -1,72 +1,76 @@
-import React, { Component } from 'react';
-import axios from 'axios';
-import SeacrhForm from '../SearchForm/SearchForm';
-import Gallery from '../Gallery/Gallery';
-import './App.module.css';
+import React, { Component } from "react";
+import Loader from "react-loader-spinner";
+
+import Searchbar from "./Searchbar/Searchbar";
+import ImageGallery from "./ImageGallery/ImageGallery";
+import Button from "./Button/Button";
+import Modal from "./Modal/Modal";
+
+import fetchImages from "../../services/imageApi";
+import imageDataMapper from "../../utils/imageDataMapper";
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+import styles from "./App.module.css";
 
 class App extends Component {
-  state = {
-    photoCards: [],
-    querry: 'cats',
-    perPage: 12,
-  };
+  state = { query: "", images: [], isLoading: false, openModal: false };
 
   componentDidMount() {
-    const { querry, perPage } = this.state;
-    this.fetchPhoto(querry, perPage);
-  }
+    this.setState({ isLoading: true });
 
-  componentDidUpdate(prevProps, prevState) {
-    const { photoCards, querry, perPage } = this.state;
-
-    if (prevState.perPage !== perPage) {
-      this.fetchPhoto(querry, perPage);
-    }
-    if (perPage === 12) {
-      photoCards.length = 12;
-    }
-    if (photoCards.length > 12) {
-      window.scrollTo({
-        top: document.body.scrollHeight - 1430,
-        behavior: 'instant',
+    fetchImages()
+      .then(data => imageDataMapper(data))
+      .then(mappedData =>
+        this.setState({
+          images: mappedData,
+          isLoading: false,
+        }),
+      )
+      .catch(err => {
+        throw new Error(err);
       });
-    }
   }
 
-  fetchPhoto = (querry, perPage) => {
-    axios(
-      `https://pixabay.com/api/?image_type=photo&orientation=horizontal&q=${querry}&page=1&per_page=${perPage}&key=13203870-f88321e1576e2ee35198d8add`,
-    ).then(({ data }) => this.setState({ photoCards: data.hits }));
+  handleSearchQuery = e => {
+    this.setState({ query: e.target.value });
   };
 
-  handleSubmit = e => {
-    e.preventDefault();
-    this.setState({ perPage: 12 });
-    const { querry } = this.state;
-    const { perPage } = this.state;
-    this.fetchPhoto(querry, perPage);
-  };
+  handleSearchSubmit = () => {
+    const { query } = this.state;
+    this.setState({ isLoading: true });
 
-  handleInputChange = e => {
-    this.setState({ querry: e.target.value });
-  };
-
-  handleLoadMore = () => {
-    this.setState(prevState => ({
-      perPage: prevState.perPage + 12,
-    }));
+    fetchImages(query)
+      .then(data => imageDataMapper(data))
+      .then(mappedData => {
+        return this.setState({
+          images: mappedData,
+          isLoading: false,
+        });
+      })
+      .catch(err => {
+        throw new Error(err);
+      });
   };
 
   render() {
-    const { photoCards } = this.state;
+    const { query, images, isLoading, openModal } = this.state;
     return (
-      <>
-        <SeacrhForm
-          onSubmit={this.handleSubmit}
-          onChange={this.handleInputChange}
+      <div className={styles.App}>
+        <Searchbar
+          onSubmit={this.handleSearchSubmit}
+          onChange={this.handleSearchQuery}
+          value={query}
         />
-        <Gallery photoMass={photoCards} onLoadMore={this.handleLoadMore} />
-      </>
+        <ImageGallery images={images} />
+        {images.length > 0 && <Button />}
+        <Loader
+          type="ThreeDots"
+          color="#3f51b5"
+          height={40}
+          width={60}
+          visible={isLoading}
+        />
+        {openModal && <Modal />}
+      </div>
     );
   }
 }
