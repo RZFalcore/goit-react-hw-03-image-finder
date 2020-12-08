@@ -12,33 +12,33 @@ import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import styles from "./App.module.css";
 
 class App extends Component {
-  state = { query: "", images: [], isLoading: false, openModal: false };
+  state = {
+    query: "",
+    page: 1,
+    images: [],
+    selectedImage: "",
+    isLoading: false,
+    openModal: false,
+  };
 
   componentDidMount() {
-    this.setState({ isLoading: true });
-
-    fetchImages()
-      .then(data => imageDataMapper(data))
-      .then(mappedData =>
-        this.setState({
-          images: mappedData,
-          isLoading: false,
-        }),
-      )
-      .catch(err => {
-        throw new Error(err);
-      });
+    this.handleFetch();
   }
 
   handleSearchQuery = e => {
     this.setState({ query: e.target.value });
   };
 
-  handleSearchSubmit = () => {
-    const { query } = this.state;
+  handleSearchSubmit = e => {
+    e.preventDefault();
+    this.handleFetch();
+  };
+
+  handleFetch = () => {
+    const { query, page } = this.state;
     this.setState({ isLoading: true });
 
-    fetchImages(query)
+    fetchImages(query.length === 0 ? "cat" : query, page)
       .then(data => imageDataMapper(data))
       .then(mappedData => {
         return this.setState({
@@ -51,8 +51,21 @@ class App extends Component {
       });
   };
 
+  handleModalImageSelection = id => {
+    const { images } = this.state;
+    const selectedImage = images.filter(img => img.id === id)[0];
+    this.setState({
+      selectedImage: selectedImage.largeImageURL,
+      openModal: true,
+    });
+  };
+
+  handleModal = () => {
+    this.setState(state => ({ openModal: !state.openModal }));
+  };
+
   render() {
-    const { query, images, isLoading, openModal } = this.state;
+    const { query, images, selectedImage, isLoading, openModal } = this.state;
     return (
       <div className={styles.App}>
         <Searchbar
@@ -60,7 +73,10 @@ class App extends Component {
           onChange={this.handleSearchQuery}
           value={query}
         />
-        <ImageGallery images={images} />
+        <ImageGallery
+          images={images}
+          onModalImgSelect={this.handleModalImageSelection}
+        />
         {images.length > 0 && <Button />}
         <Loader
           type="ThreeDots"
@@ -69,7 +85,9 @@ class App extends Component {
           width={60}
           visible={isLoading}
         />
-        {openModal && <Modal />}
+        {openModal && (
+          <Modal img={selectedImage} onModalClose={this.handleModal} />
+        )}
       </div>
     );
   }
