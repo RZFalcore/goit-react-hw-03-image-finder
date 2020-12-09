@@ -25,6 +25,29 @@ class App extends Component {
     this.handleFetch();
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    const { query, page } = this.state;
+
+    if (prevState.page !== page) {
+      fetchImages(query.length === 0 ? "cat" : query, page)
+        .then(data => imageDataMapper(data))
+        .then(mappedData => {
+          return this.setState(state => ({
+            images: [...state.images, ...mappedData],
+            isLoading: false,
+          }));
+        })
+        .catch(err => {
+          throw new Error(err);
+        });
+
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }
+
   handleSearchQuery = e => {
     this.setState({ query: e.target.value });
   };
@@ -64,8 +87,13 @@ class App extends Component {
     this.setState(state => ({ openModal: !state.openModal }));
   };
 
+  handleLoadMoreImgs = () => {
+    this.setState(state => ({ page: state.page + 1, isLoading: true }));
+  };
+
   render() {
     const { query, images, selectedImage, isLoading, openModal } = this.state;
+
     return (
       <div className={styles.App}>
         <Searchbar
@@ -77,14 +105,18 @@ class App extends Component {
           images={images}
           onModalImgSelect={this.handleModalImageSelection}
         />
-        {images.length > 0 && <Button />}
-        <Loader
-          type="ThreeDots"
-          color="#3f51b5"
-          height={40}
-          width={60}
-          visible={isLoading}
-        />
+        {images.length > 0 && (
+          <Button onLoadMoreImgs={this.handleLoadMoreImgs} />
+        )}
+        <div className={styles.loaderWrap}>
+          <Loader
+            type="ThreeDots"
+            color="#3f51b5"
+            height={40}
+            width={60}
+            visible={isLoading}
+          />
+        </div>
         {openModal && (
           <Modal img={selectedImage} onModalClose={this.handleModal} />
         )}
