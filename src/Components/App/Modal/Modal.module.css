@@ -13,5 +13,12 @@
 
 .Modal {
   max-width: calc(100vw - 48px);
-  max-height: calc(90vh - 40px);
+  max-height: calc(100vh - 10px);
+  display: flex;
+  justify-content: center;
+}
+
+.Modal img {
+  max-width: 80%;
+  max-height: 80%;
 }
